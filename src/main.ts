@@ -42,11 +42,9 @@ const world = new CANNON.World({
   gravity: new CANNON.Vec3(0, -9.81, 0)
 });
 
-const groundPhyscisMaterial = new CANNON.Material();
 const groundBody = new CANNON.Body({
-  shape: new CANNON.Box(new CANNON.Vec3(15, 150.1))
-  // type: CANNON.Body.STATIC,
-  // material: groundPhyscisMaterial
+  shape: new CANNON.Box(new CANNON.Vec3(15, 150.1)),
+  mass: 10
 });
 
 world.addBody(groundBody);
@@ -54,8 +52,8 @@ world.addBody(groundBody);
 const timeStep = 1 / 60;
 
 function animate() {
-  // cube.rotation.y += 0.01;
   world.step(timeStep);
+  // cube.rotation.y += 0.1;
 
   cube.position.copy(groundBody.position as any);
   cube.quaternion.copy(groundBody.quaternion as any);
