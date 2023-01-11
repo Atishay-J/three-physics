@@ -59,25 +59,53 @@ const world = new CANNON.World({
   gravity: new CANNON.Vec3(0, -9.81, 0)
 });
 
+const groundBodyMaterial = new CANNON.Material();
+
 const groundBody = new CANNON.Body({
   shape: new CANNON.Box(new CANNON.Vec3(10, 0.1, 10)),
   // mass: 10
-  type: CANNON.Body.STATIC
+  type: CANNON.Body.STATIC,
+  material: groundBodyMaterial
 });
+
+const cubeBodyMaterial = new CANNON.Material();
 
 const cubeBody = new CANNON.Body({
   shape: new CANNON.Box(new CANNON.Vec3(0.4, 0.4, 0.4)), // This needs to be half of the size of THREE geometry
-  mass: 10
+  mass: 10,
+  material: cubeBodyMaterial
 });
 
 cubeBody.position = new CANNON.Vec3(0.2, 10, 0);
 
+const sphereBodyMaterial = new CANNON.Material();
+
 const sphereBody = new CANNON.Body({
-  mass: 10,
+  mass: 30,
   shape: new CANNON.Sphere(0.4), // This needs to be same as Three Geometry
-  position: new CANNON.Vec3(0, 3, 0)
+  position: new CANNON.Vec3(0, 3, 0),
+  linearDamping: 0.31, // This adds resistance and give more natural feel
+  material: sphereBodyMaterial
 });
 
+const sphereGroundContactMaterial = new CANNON.ContactMaterial(
+  groundBodyMaterial,
+  sphereBodyMaterial,
+  {
+    restitution: 0.8
+  }
+);
+
+const contactMaterial = new CANNON.ContactMaterial(
+  groundBodyMaterial,
+  cubeBodyMaterial,
+  {
+    friction: 0.04
+  }
+);
+
+world.addContactMaterial(sphereGroundContactMaterial);
+world.addContactMaterial(contactMaterial);
 world.addBody(sphereBody);
 world.addBody(cubeBody);
 world.addBody(groundBody);
