@@ -1,6 +1,9 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import kangaroo from './models/kangaroo/kangaroo.gltf';
+import babyHippo from './models/babyHippo.glb';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
 const scene = new THREE.Scene();
 
@@ -53,6 +56,33 @@ camera.position.y = 10;
 camera.lookAt(0, 0, 0);
 directionalLight.position.x = 4;
 
+// model
+const loader = new GLTFLoader();
+
+let kangarooModel: THREE.Object3D<THREE.Event>;
+
+const kangarooPhyMaterial = new CANNON.Material();
+const kangarooPhysBody = new CANNON.Body({
+  shape: new CANNON.Box(new CANNON.Vec3(15, 2, 15)),
+  material: kangarooPhyMaterial,
+  mass: 1,
+  position: new CANNON.Vec3(0, 8, 0)
+});
+
+// loader.load(
+//   kangaroo as string,
+//   function (gltf: { scene: THREE.Object3D<THREE.Event> }) {
+//     kangarooModel = gltf.scene;
+//     kangarooModel.scale.set(0.5, 0.5, 0.5);
+//     // kangarooModel.position.y = 1;
+//     scene.add(kangarooModel);
+//   },
+//   undefined,
+//   function (err: any) {
+//     console.log('Error while loading modle', err);
+//   }
+// );
+
 // Cannon Here
 
 const world = new CANNON.World({
@@ -96,37 +126,47 @@ const sphereGroundContactMaterial = new CANNON.ContactMaterial(
   }
 );
 
+const kangarooGroundContactMaterial = new CANNON.ContactMaterial(
+  groundBodyMaterial,
+  kangarooPhyMaterial,
+  {
+    restitution: 3
+  }
+);
+
 const contactMaterial = new CANNON.ContactMaterial(
   groundBodyMaterial,
   cubeBodyMaterial,
   {
-    friction: 0.04
+    friction: 0
   }
 );
 
 world.addContactMaterial(sphereGroundContactMaterial);
 world.addContactMaterial(contactMaterial);
+world.addContactMaterial(kangarooGroundContactMaterial);
 world.addBody(sphereBody);
 world.addBody(cubeBody);
 world.addBody(groundBody);
+world.addBody(kangarooPhysBody);
 
 const timeStep = 1 / 60;
 
 function animate() {
   world.step(timeStep);
   // cube.rotation.y += 0.1;
+  requestAnimationFrame(animate);
 
   plane.position.copy(groundBody.position as any);
   plane.quaternion.copy(groundBody.quaternion as any);
 
-  cube.position.copy(cubeBody.position as any);
-  cube.quaternion.copy(cubeBody.quaternion as any);
+  // kangarooModel.position.copy(kangarooPhysBody.position as any);
+  // kangarooModel.quaternion.copy(kangarooPhysBody.quaternion as any);
 
   sphere.position.copy(sphereBody.position as any);
   sphere.quaternion.copy(sphereBody.quaternion as any);
 
   renderer.render(scene, camera);
-  requestAnimationFrame(animate);
 }
 document.body.appendChild(renderer.domElement);
 animate();
